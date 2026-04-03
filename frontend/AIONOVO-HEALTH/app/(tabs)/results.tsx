@@ -14,6 +14,20 @@ type PredictionResult = {
 export default function Results() {
   const navigation = useNavigation();
   const params = useLocalSearchParams();
+  const age = String(params.age ?? '');
+  const esr = String(params.ESR ?? '');
+  const crp = String(params.CRP ?? '');
+  const rf = String(params.RF ?? '');
+  const c3 = String(params.C3 ?? '');
+  const c4 = String(params.C4 ?? '');
+  const gender = String(params.gender ?? '');
+  const antiCCP = String(params.antiCCP ?? '');
+  const hlaB27 = String(params.HLAB27 ?? '');
+  const ana = String(params.ANA ?? '');
+  const antiRo = String(params.antiRo ?? '');
+  const antiLa = String(params.antiLa ?? '');
+  const antiDsDNA = String(params.antiDsDNA ?? '');
+  const antiSm = String(params.antiSm ?? '');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
@@ -28,20 +42,20 @@ export default function Results() {
         setError(null);
 
         const payload = {
-          Age: Number(params.age),
-          ESR: Number(params.ESR),
-          CRP: Number(params.CRP),
-          RF: Number(params.RF),
-          C3: Number(params.C3),
-          C4: Number(params.C4),
-          Gender: String(params.gender ?? ''),
-          Anti_CCP: String(params.antiCCP ?? ''),
-          HLA_B27: String(params.HLAB27 ?? ''),
-          ANA: String(params.ANA ?? ''),
-          Anti_Ro: String(params.antiRo ?? ''),
-          Anti_La: String(params.antiLa ?? ''),
-          Anti_dsDNA: String(params.antiDsDNA ?? ''),
-          Anti_Sm: String(params.antiSm ?? ''),
+          Age: Number(age),
+          ESR: Number(esr),
+          CRP: Number(crp),
+          RF: Number(rf),
+          C3: Number(c3),
+          C4: Number(c4),
+          Gender: gender,
+          Anti_CCP: antiCCP,
+          HLA_B27: hlaB27,
+          ANA: ana,
+          Anti_Ro: antiRo,
+          Anti_La: antiLa,
+          Anti_dsDNA: antiDsDNA,
+          Anti_Sm: antiSm,
         };
 
         const controller = new AbortController();
@@ -92,7 +106,7 @@ export default function Results() {
     return () => {
       active = false;
     };
-  }, [params, requestKey]);
+  }, [age, esr, crp, rf, c3, c4, gender, antiCCP, hlaB27, ana, antiRo, antiLa, antiDsDNA, antiSm, requestKey]);
 
   return (
     <View style={styles.container}>
