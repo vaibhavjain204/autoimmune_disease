@@ -171,7 +171,7 @@ def home():
 @app.get("/health")
 def health():
     return {
-        "database_configured": bool(db),
+        "database_configured": db is not None,
         "model_dir": str(MODEL_DIR),
         "status": "ok",
     }
