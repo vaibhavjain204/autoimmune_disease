@@ -1,42 +1,66 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { getApiUrl } from '@/constants/api';
+import { saveSession } from '@/utils/session';
 
 export default function Login() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    const storedUser = await AsyncStorage.getItem('user');
+    try {
+      if (!email || !password) {
+        Alert.alert('Missing details', 'Enter your email and password.');
+        return;
+      }
 
-    if (!storedUser) {
-      Alert.alert('No Account', 'Please sign up first');
-      return;
-    }
+      setLoading(true);
 
-    const user = JSON.parse(storedUser);
+      const response = await fetch(getApiUrl('/auth/login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    if (user.email === email && user.password === password) {
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed.');
+      }
+
+      await saveSession({
+        token: data.token,
+        user: data.user,
+      });
       router.replace('/(tabs)');
-    } else {
-      Alert.alert('Invalid Credentials');
+    } catch (error) {
+      Alert.alert('Login failed', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-
         <Text style={styles.logo}>AIONOVA HEALTH</Text>
-        <Text style={styles.title}>Welcome Back 👋</Text>
+        <Text style={styles.title}>Welcome Back</Text>
 
         <TextInput
           placeholder="Email Address"
           style={styles.input}
           value={email}
+          autoCapitalize="none"
+          keyboardType="email-address"
           onChangeText={setEmail}
         />
 
@@ -48,27 +72,20 @@ export default function Login() {
           onChangeText={setPassword}
         />
 
-        <Text style={styles.forgot}>Forgot Password?</Text>
-
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
         </TouchableOpacity>
 
         <Text style={styles.bottomText}>
-          Don’t have an account?{' '}
+          Do not have an account?{' '}
           <Text style={styles.link} onPress={() => router.push('/signup')}>
             Sign Up
           </Text>
         </Text>
-
       </View>
     </View>
   );
 }
-
-/*
-Same theme UI with improved spacing and clean layout
-*/
 
 const styles = StyleSheet.create({
   container: {
@@ -101,12 +118,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     marginTop: 12,
-  },
-  forgot: {
-    textAlign: 'right',
-    marginTop: 8,
-    fontSize: 12,
-    color: '#6c63ff',
   },
   button: {
     backgroundColor: '#6c63ff',

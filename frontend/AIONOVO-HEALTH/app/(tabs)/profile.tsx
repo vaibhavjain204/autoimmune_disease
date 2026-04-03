@@ -1,32 +1,125 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from 'expo-router';
-import Header from '../components/Header';
-import { useState } from 'react';
 
-type ProfileUser = {
+import { getApiUrl } from '@/constants/api';
+import Header from '../components/Header';
+import type { UserProfile } from '@/types/auth';
+import { getSession, saveSession } from '@/utils/session';
+
+type ProfileForm = {
   age: string;
   email: string;
   gender: string;
+  id: string;
   name: string;
 };
 
 export default function Profile() {
   const navigation = useNavigation();
-
-  const [user, setUser] = useState<ProfileUser>({
-    name: 'John Doe',
-    email: 'user@gmail.com',
-    age: '25',
-    gender: 'Male',
+  const [user, setUser] = useState<ProfileForm>({
+    name: '',
+    email: '',
+    age: '',
+    gender: '',
+    id: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleChange = (field: keyof ProfileUser, value: string) => {
+  const handleChange = (field: keyof ProfileForm, value: string) => {
     setUser({ ...user, [field]: value });
   };
 
-  const handleSave = () => {
-    // Connect to backend or AsyncStorage here
-    alert('Profile Saved Successfully!');
+  useEffect(() => {
+    let active = true;
+
+    async function loadProfile() {
+      try {
+        const session = await getSession();
+        if (!session) {
+          return;
+        }
+
+        const response = await fetch(getApiUrl('/auth/me'), {
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        });
+
+        const data = await response.json();
+        const backendUser = response.ok ? (data.user as UserProfile) : session.user;
+
+        if (active) {
+          setUser({
+            id: backendUser.id,
+            name: backendUser.name ?? '',
+            email: backendUser.email ?? '',
+            age: backendUser.age ?? '',
+            gender: backendUser.gender ?? '',
+          });
+        }
+      } catch {
+        const session = await getSession();
+        if (active && session) {
+          setUser({
+            id: session.user.id,
+            name: session.user.name ?? '',
+            email: session.user.email ?? '',
+            age: session.user.age ?? '',
+            gender: session.user.gender ?? '',
+          });
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProfile();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const session = await getSession();
+      if (!session) {
+        Alert.alert('Not logged in', 'Please log in again.');
+        return;
+      }
+
+      setSaving(true);
+      const response = await fetch(getApiUrl('/auth/profile'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to update profile.');
+      }
+
+      await saveSession({
+        token: session.token,
+        user: data.user,
+      });
+      Alert.alert('Profile Saved', 'Your profile was updated in the database.');
+    } catch (error) {
+      Alert.alert('Save failed', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -34,41 +127,48 @@ export default function Profile() {
       <Header title="Profile" navigation={navigation} />
 
       <View style={styles.card}>
-        <Text style={styles.title}>                          Profile 👤</Text>
+        <Text style={styles.title}>Profile</Text>
 
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={styles.input}
-          value={user.name}
-          onChangeText={(text) => handleChange('name', text)}
-        />
+        {loading ? (
+          <Text style={styles.infoText}>Loading profile...</Text>
+        ) : (
+          <>
+            <Text style={styles.label}>Name</Text>
+            <TextInput
+              style={styles.input}
+              value={user.name}
+              onChangeText={(text) => handleChange('name', text)}
+            />
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={user.email}
-          onChangeText={(text) => handleChange('email', text)}
-          keyboardType="email-address"
-        />
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={user.email}
+              editable={false}
+            />
 
-        <Text style={styles.label}>Age</Text>
-        <TextInput
-          style={styles.input}
-          value={user.age}
-          onChangeText={(text) => handleChange('age', text)}
-          keyboardType="numeric"
-        />
+            <Text style={styles.label}>Age</Text>
+            <TextInput
+              style={styles.input}
+              value={user.age}
+              onChangeText={(text) => handleChange('age', text)}
+              keyboardType="numeric"
+            />
 
-        <Text style={styles.label}>Gender</Text>
-        <TextInput
-          style={styles.input}
-          value={user.gender}
-          onChangeText={(text) => handleChange('gender', text)}
-        />
+            <Text style={styles.label}>Gender</Text>
+            <TextInput
+              style={styles.input}
+              value={user.gender}
+              onChangeText={(text) => handleChange('gender', text)}
+            />
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Save Profile</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
+              <Text style={styles.saveButtonText}>
+                {saving ? 'Saving...' : 'Save Profile'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -94,6 +194,10 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginTop: 5,
+  },
+  infoText: {
+    marginTop: 12,
+    color: '#555',
   },
   saveButton: {
     backgroundColor: '#6a5acd',

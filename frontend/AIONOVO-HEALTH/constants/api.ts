@@ -6,3 +6,7 @@ export const API_BASE_URL =
 export function getPredictUrl() {
   return `${API_BASE_URL.replace(/\/+$/, "")}/predict`;
 }
+
+export function getApiUrl(path: string) {
+  return `${API_BASE_URL.replace(/\/+$/, "")}${path}`;
+}

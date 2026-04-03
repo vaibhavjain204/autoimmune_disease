@@ -1,48 +1,87 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { getApiUrl } from '@/constants/api';
+import { saveSession } from '@/utils/session';
 
 export default function Signup() {
   const router = useRouter();
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (!email.includes('@gmail.com')) {
-      Alert.alert('Invalid Email');
-      return;
+    try {
+      if (!email.includes('@')) {
+        Alert.alert('Invalid Email', 'Enter a valid email address.');
+        return;
+      }
+
+      if (password.length < 6) {
+        Alert.alert('Password too short', 'Password must be at least 6 characters long.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Alert.alert('Passwords do not match');
+        return;
+      }
+
+      setLoading(true);
+
+      const response = await fetch(getApiUrl('/auth/signup'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Signup failed.');
+      }
+
+      await saveSession({
+        token: data.token,
+        user: data.user,
+      });
+      Alert.alert('Account Created', 'Your account is now stored in the backend database.');
+      router.replace('/(tabs)');
+    } catch (error) {
+      Alert.alert('Signup failed', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
-
-    if (password.length < 6) {
-      Alert.alert('Password too short');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Passwords do not match');
-      return;
-    }
-
-    await AsyncStorage.setItem('user', JSON.stringify({ email, password }));
-
-    Alert.alert('Account Created!');
-    router.replace('/login');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-
         <Text style={styles.logo}>AIONOVA HEALTH</Text>
-        <Text style={styles.title}>Create Account 🚀</Text>
+        <Text style={styles.title}>Create Account</Text>
+
+        <TextInput
+          placeholder="Full Name"
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+        />
 
         <TextInput
           placeholder="Email Address"
           style={styles.input}
           value={email}
+          autoCapitalize="none"
+          keyboardType="email-address"
           onChangeText={setEmail}
         />
 
@@ -62,8 +101,8 @@ export default function Signup() {
           onChangeText={setConfirmPassword}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>Sign Up</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Creating account...' : 'Sign Up'}</Text>
         </TouchableOpacity>
 
         <Text style={styles.bottomText}>
@@ -72,15 +111,10 @@ export default function Signup() {
             Login
           </Text>
         </Text>
-
       </View>
     </View>
   );
 }
-
-/*
-Signup UI with same theme and improved UX
-*/
 
 const styles = StyleSheet.create({
   container: {

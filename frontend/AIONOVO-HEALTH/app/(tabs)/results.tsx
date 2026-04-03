@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { getSession } from '@/utils/session';
 
 import { API_BASE_URL, getPredictUrl } from '@/constants/api';
 
@@ -60,12 +61,17 @@ export default function Results() {
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 45000);
+        const session = await getSession();
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (session?.token) {
+          headers.Authorization = `Bearer ${session.token}`;
+        }
 
         const response = await fetch(getPredictUrl(), {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal,
         });

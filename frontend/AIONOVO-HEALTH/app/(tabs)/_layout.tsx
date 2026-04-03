@@ -1,13 +1,14 @@
 import { Drawer } from 'expo-router/drawer';
 import { useRouter } from 'expo-router';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { clearSession } from '@/utils/session';
 
 function CustomDrawer() {
   const router = useRouter();
 
   const logout = async () => {
-    await AsyncStorage.removeItem('user');
+    await clearSession();
     router.replace('/login');
   };
 
