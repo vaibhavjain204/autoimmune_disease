@@ -10,3 +10,11 @@ model_dir_final3.zip
 model_dir_final3/
 model_dir_retrain/
 model_dir_retrain_calibrated/
+
+# Frontend local artifacts
+frontend/AIONOVO-HEALTH/node_modules/
+frontend/AIONOVO-HEALTH/.expo/
+frontend/AIONOVO-HEALTH/dist/
+frontend/AIONOVO-HEALTH/web-build/
+frontend/AIONOVO-HEALTH/.git/
+frontend/AIONOVO-HEALTH/.DS_Store
