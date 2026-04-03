@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import numpy as np
@@ -11,6 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "model_dir"
 
 app = FastAPI(title="Autoimmune Disease Prediction API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Columns must stay aligned with training.
 NUMERIC_COLS = ["Age", "ESR", "CRP", "RF", "C3", "C4"]

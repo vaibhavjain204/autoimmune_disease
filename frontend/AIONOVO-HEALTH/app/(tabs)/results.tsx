@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { API_BASE_URL, getPredictUrl } from '@/constants/api';
 
@@ -17,6 +17,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -43,13 +44,19 @@ export default function Results() {
           Anti_Sm: String(params.antiSm ?? ''),
         };
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
+
         const response = await fetch(getPredictUrl(), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         const data = await response.json();
 
@@ -65,7 +72,13 @@ export default function Results() {
         }
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : 'Something went wrong.');
+          const message =
+            err instanceof Error && err.name === 'AbortError'
+              ? 'The backend took too long to respond. On Render free tier, the first request can be slow while the server wakes up.'
+              : err instanceof Error
+                ? err.message
+                : 'Something went wrong.';
+          setError(message);
         }
       } finally {
         if (active) {
@@ -79,7 +92,7 @@ export default function Results() {
     return () => {
       active = false;
     };
-  }, [params]);
+  }, [params, requestKey]);
 
   return (
     <View style={styles.container}>
@@ -91,13 +104,25 @@ export default function Results() {
         {loading ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color="#6c63ff" />
-            <Text style={styles.helper}>Contacting the deployed ML API...</Text>
+            <Text style={styles.helper}>
+              Contacting the deployed ML API. The first request can take time if Render is waking up.
+            </Text>
           </View>
         ) : error ? (
           <View>
             <Text style={styles.errorTitle}>Prediction failed</Text>
             <Text style={styles.errorText}>{error}</Text>
             <Text style={styles.helper}>API Base URL: {API_BASE_URL}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => {
+                setError(null);
+                setLoading(true);
+                setRequestKey((value) => value + 1);
+              }}
+            >
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View>
@@ -162,5 +187,17 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#333',
     lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: '#6c63ff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginTop: 18,
+    alignSelf: 'flex-start',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
