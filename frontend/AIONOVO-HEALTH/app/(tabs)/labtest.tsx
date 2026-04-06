@@ -148,7 +148,10 @@ export default function LabTest() {
           <Text>Gender</Text>
           <View style={styles.dropdown}>
             <Picker
+              dropdownIconColor="#4a4a8a"
+              mode="dropdown"
               selectedValue={form.gender}
+              style={styles.picker}
               onValueChange={(value) => handleChange('gender', value)}
             >
               <Picker.Item label="Select Gender" value="" />
@@ -163,7 +166,10 @@ export default function LabTest() {
           <Text>Anti-CCP</Text>
           <View style={styles.dropdown}>
             <Picker
+              dropdownIconColor="#4a4a8a"
+              mode="dropdown"
               selectedValue={form.antiCCP}
+              style={styles.picker}
               onValueChange={(value) => handleChange('antiCCP', value)}
             >
               <Picker.Item label="Select" value="" />
@@ -185,7 +191,10 @@ export default function LabTest() {
             <Text>{item.label}</Text>
             <View style={styles.dropdown}>
               <Picker
+                dropdownIconColor="#4a4a8a"
+                mode="dropdown"
                 selectedValue={form[item.key as keyof typeof form]}
+                style={styles.picker}
                 onValueChange={(value) => handleChange(item.key, value)}
               >
                 <Picker.Item label="Select" value="" />
@@ -226,6 +235,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     marginTop: 5,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  picker: {
+    color: '#222',
+    height: 56,
   },
   button: {
     backgroundColor: '#6c63ff',
