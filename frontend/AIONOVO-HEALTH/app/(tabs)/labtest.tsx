@@ -78,6 +78,7 @@ export default function LabTest() {
             value={form.age}
             style={styles.input}
             placeholder="Enter value"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('age', value)}
           />
@@ -88,6 +89,8 @@ export default function LabTest() {
           <TextInput
             value={form.ESR}
             style={styles.input}
+            placeholder="Enter ESR"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('ESR', value)}
           />
@@ -98,6 +101,8 @@ export default function LabTest() {
           <TextInput
             value={form.CRP}
             style={styles.input}
+            placeholder="Enter CRP"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('CRP', value)}
           />
@@ -108,6 +113,8 @@ export default function LabTest() {
           <TextInput
             value={form.RF}
             style={styles.input}
+            placeholder="Enter RF"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('RF', value)}
           />
@@ -118,6 +125,8 @@ export default function LabTest() {
           <TextInput
             value={form.C3}
             style={styles.input}
+            placeholder="Enter C3"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('C3', value)}
           />
@@ -128,6 +137,8 @@ export default function LabTest() {
           <TextInput
             value={form.C4}
             style={styles.input}
+            placeholder="Enter C4"
+            placeholderTextColor="#8b86a3"
             keyboardType="numeric"
             onChangeText={(value) => handleFloatInput('C4', value)}
           />
@@ -206,6 +217,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#fff',
+    color: '#222',
     padding: 12,
     borderRadius: 10,
     marginTop: 5,

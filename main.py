@@ -126,7 +126,14 @@ def _get_current_user(authorization: str | None) -> dict[str, Any] | None:
     return user
 
 
-scaler, ohe, models, idx_to_class, encoder = _load_artifacts()
+model_bundle: tuple[Any, Any, Any, Any, Any] | None = None
+
+
+def _get_model_bundle():
+    global model_bundle
+    if model_bundle is None:
+        model_bundle = _load_artifacts()
+    return model_bundle
 
 
 class PatientData(BaseModel):
@@ -277,6 +284,8 @@ def prediction_history(authorization: str | None = Header(default=None)):
 @app.post("/predict")
 def predict(data: PatientData, authorization: str | None = Header(default=None)):
     try:
+        scaler, ohe, models, idx_to_class, encoder = _get_model_bundle()
+
         row_num = pd.DataFrame(
             [
                 {

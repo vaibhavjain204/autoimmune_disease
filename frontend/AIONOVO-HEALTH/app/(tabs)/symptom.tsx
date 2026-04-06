@@ -28,6 +28,7 @@ export default function Symptom() {
         {/* Input */}
         <TextInput
           placeholder="e.g. Fever, Joint Pain"
+          placeholderTextColor="#8b86a3"
           style={styles.input}
           value={input}
           onChangeText={setInput}
@@ -87,6 +88,7 @@ const styles = StyleSheet.create({
 
   input: {
     backgroundColor: '#fff',
+    color: '#222',
     padding: 12,
     borderRadius: 10,
     marginTop: 10,

@@ -20,6 +20,7 @@ export default function UserInfo() {
 
         <TextInput
           placeholder="Name"
+          placeholderTextColor="#8b86a3"
           style={styles.input}
           value={name}
           onChangeText={setName}
@@ -27,6 +28,7 @@ export default function UserInfo() {
 
         <TextInput
           placeholder="Age"
+          placeholderTextColor="#8b86a3"
           style={styles.input}
           keyboardType="numeric"
           value={age}
@@ -35,6 +37,7 @@ export default function UserInfo() {
 
         <TextInput
           placeholder="Gender"
+          placeholderTextColor="#8b86a3"
           style={styles.input}
           value={gender}
           onChangeText={setGender}
@@ -69,6 +72,7 @@ const styles = StyleSheet.create({
 
   input: {
     backgroundColor: '#fff',
+    color: '#222',
     padding: 12,
     borderRadius: 10,
     marginTop: 10,
