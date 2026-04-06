@@ -23,7 +23,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "change-this-jwt-secret-in-render").strip()
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 mongo_client = MongoClient(MONGODB_URI) if MONGODB_URI else None
 db = mongo_client[MONGODB_DB_NAME] if mongo_client else None
